@@ -180,7 +180,11 @@ use bubble to represent "NOT" for input and output when drawing circuits
 ### Arrays of Logic Elements
 use slash to represent parallel constructions
  
-Ex: 64-bit wide 2:1 multiplextor is equal to #64 2:1 multiplexors combined together
+Ex: 64-bit wide 2:1 multiplextor is equal to #64 2:1 multiplexors combined together. They all have the same select line, so these 64 MUX will all select A or all select B.
+
+Just think of 64-bit wide 2:1 MUX as selecting a result of 64 bit
+
+<img src="img/lec5-1.png">
 
 ## Programmable Logic Array (PLA)
 input -> AND -> OR -> output (could have multiple output functions)
@@ -193,13 +197,13 @@ Can be used to implement any boolean function as sum of products
 An electrically-controlled switch
 - A = 0, high resistance, so electricity cannot flow through the switch
 - A = 1, low resistance, electricity can flow throgh
-- when resistance is low, pass strong 0, weak 1
+- pass strong 0, weak 1
 
 ## pMOS Transistor
 Opposite behaviour compared to nMOS
 - A = 0, low resistance
 - A = 1, high resistance
-- when resistance is low, pass strong 1, weak 0
+- pass strong 1, weak 0
 
 “bubble” on input A indicates transistor works in opposite manner to nMOS
 
@@ -212,7 +216,7 @@ For strong transmissions, ALWAYS connect pMOS to power (strong 1), nMOS to groun
 
 ### Analyze CMOS circuit:
 - truth table with inputs, transistors, output
-- evaluate resistance of transistors, H or L
+- evaluate resistance of transistors, H or L, for every input combination
 - output is
     - 1 if there is a low resistance path to power
     - 0 if there is a low resistance path to ground
@@ -224,7 +228,7 @@ For strong transmissions, ALWAYS connect pMOS to power (strong 1), nMOS to groun
 - NOR: 4 transistors
 - AND: 6 transistors
 
-Thus we prefer to implement circuit with NAND, since it requires less transistors
+Thus we ***prefer to implement circuit with NAND, since it requires less transistors***
 
 ## Tri-state Buffer Gate
 Has three outputs, 0, 1, floating (connected to neither power or ground)
@@ -238,17 +242,22 @@ Has three outputs, 0, 1, floating (connected to neither power or ground)
 
 Usefull cuz we can control when to sync F with X. Sync only happen with C = 1
 
+<img src="img/lec6-1.png">
+<img src="img/lec6-2.png">
+
 # Lecture 7
 ## Sequential Circuit
 A sequential circuit has a storage (state) element
 
-Synchronous sequential circuit: it has a clock and storage (memory) changes only at discrete points in time (clock pulse, similar to PWM cycle). 
+Synchronous sequential circuit: it has a clock and storage (memory) **changes only at discrete points in time** (clock pulse, similar to PWM cycle). 
 
 Asynchronous: no clock, potential faster and require less power, but harder to design and alalyze. Not in scope of 251
 
 ### SR Latch
-- can remember (SR=00), reset (SR=01), set (SR=10)
+- can remember values of Q (SR=00), reset Q = 0 (SR=01), set Q = 1 (SR=10)
 - BUT undefined with SR=11, and don't have clock
+
+<img src="img/lec7-1.png">
 
 ### D Latch
 Improved on SR Latch. Now have clock (C) and data (D) that we want to save, it also avoid the SR=11 undefined case
@@ -257,6 +266,8 @@ Q is D when C is high (1) and preserve value when C is low (0)
 
 Problem when D changes while C is high, Q will change with D, but we want D to only change at rising/falling-edges of C
 
+<img src="img/lec7-2.png">
+
 ### D Flip-Flop
 D flip-flop **only** passes the value of D to Q<sub>E</sub> on the **falling-edge** (goes from high to low) of C (clock)
 
@@ -264,11 +275,32 @@ When inverted clock is input to the D flip-flop, it only passes the value of D t
 
 Both are called **edge-triggered**, doesn't matter which one to use, both work the same
 
+<img src="img/lec7-3.png">
+
+<img src="img/lec7-4.png">
+
 # Lecture 8
 ## Finite State Machine
-input + current state -> next state function -> new state -> output function -> output
+- input + current state -> next state function -> next state
+- state -> output function -> output
 
-From finite state machine, we can get a ***next state table***, that takes in input and current state, and generate next state. From all the states, we can generate a ***output table***, from which we can get a output function.
+From finite state machine, we can get a ***next state table***, that takes in input + current state, and generate next state. We can get a next state function from this table
+
+From all the states, we can generate an ***output table***, from which we can get a output function.
+
+We could also trace through the FSM when given the starting state and input at each cycle
+
+---
+
+### Ex
+<img src="img/lec8-1.png">
+
+<img src="img/lec8-2.png">
+
+<img src="img/lec8-3.png">
+
+<img src="img/lec8-4.png">
+
 
 # Lecture 9
 ## Data Representation
@@ -276,12 +308,17 @@ decimal <--> binary <--> hex
 
 - unsigned
 - sign and magnitude, have duplicate 0
-- two's complement: flip bits, add 1
+- two's complement: **flip bits, add 1**
 
+### Carry Out
+We ignore any carry out, and result will still be correct
 
-Overflow: a + b = c \
-a, b same sign, c different sign, then overflow happened. \
-a, b different sign, impossible to overflow
+<img src="img/lec9-1.png">
+
+### Overflow
+consider a + b = c
+- a, b same sign, c different sign ----> **overflow happened**
+- a, b different sign ----> impossible to overflow
 
 ## Full Adder
 - 3 bits as input: A, B, CarryIn
@@ -290,11 +327,23 @@ a, b different sign, impossible to overflow
 make a truth table, get SOP for Sum & CarryOut
 
 A - B = A + (-B) = A + (not B + 1) by two's complement \
-so in addition, first CarryIn = 0, but in subtraction, first CarryIn = 1
+so in addition (A + B), first CarryIn = 0 \
+but in subtraction (A - B), first CarryIn = 1. We also need to input (not B) instead of B
+
+<img src="img/lec9-2.png">
+
+## Logical Operator
+- bitwise and
+- bitwise or
+- bitwise xor
+
+bitwise not is just bitwise xor with all 1s
 
 ## ALU
-<img src="img/lec9-1.png">
-<img src="img/lec9-2.png">
+extends functionality of full adder. ALU can now perform AND, OR, addition
+
+<img src="img/lec9-3.png">
+<img src="img/lec9-4.png">
 
 
 # Lecture 10
@@ -303,20 +352,22 @@ In 251, all binary multiplications are **unsigned**
 
 Note: for n bit numbers, result may be 2n bits
 
+<img src="img/lec10-1.png">
+
 ## Represent Real Numbers
 work just like decimal
 - 1.01<sub>2</sub> x 2<sup>4</sup> = 10100<sub>2</sub> = 20<sub>10</sub>
 - 1.01<sub>2</sub> = 1 x 2<sup>0</sup> + 0 x 2<sup>-1</sup> + 1 x 2<sup>-2</sup> = 1 + 1/4 = 5/4 <sub>10</sub>
 
 In scientific notation
-- 1.010 x 2<sup>3</sup> <sub>2</sub> (this is in binary)
-    - 1: sign
+- -1.010 x 2<sup>3</sup> <sub>2</sub> (this is in binary)
+    - "-": sign
     - 010: fraction (dot is not included)
     - 3: exponent
 
 This is represented as
 - bit 31 (S): sign for entire fraction, 1 for neg, 0 for pos
-- bit 30 - 23 (E in unsigned binary): exponent, represented by adding 127 to E (biased notation, with bias = 127), then convert the result to an unsigned binary number. Pad 0 from left.
+- bit 30 - 23 (E, exponent represented in unsigned binary): add 127 to exponent (biased notation, with bias = 127), then convert the result to an unsigned binary number. Pad 0 from left.
 - bit 22 - 0 (F): fraction part. Pad 0 from right
 
 Don't need to record the "1" before the "dot ." Since scientific numbers are always normalized, hence in the form (+/- 1.F x 2<sup>E</sup>)
@@ -325,7 +376,7 @@ floating point value in decimal = (−1)<sup>S</sup> × (1 + fraction) × 2
 <sup>(exponent−bias)</sup>
 
 ### Valid Bias Range
-after convertion, we have 8 bit unsigned number, from 0 - 255, but 0 & 255 are reserved, so valid range is 1 - 254, hence (1-127) - (254-127) == -126 - 127 before convertion for valid power
+after convertion, we have 8 bit unsigned number, in range [0, 255], but 0 & 255 are reserved, so valid range is [1, 254], hence [(1-127), (254-127)] == [-126, 127] is the valid range for exponents before converting to bias notation
 
 ### Decimal to Binary
 - 0.625<sub>10</sub> to 0.101<sub>2</sub>
@@ -335,6 +386,8 @@ after convertion, we have 8 bit unsigned number, from 0 - 255, but 0 & 255 are r
 - 2.625<sub>10</sub> to binary
     - 2.625<sub>10</sub> = (2 + 0.625)<sub>10</sub> = (10 + 0.101)<sub>2</sub> = 1.0101<sub>2</sub> x 2<sup>-1</sup>
 
+<img src="img/lec10-2.png">
+
 # Lecture 11
 ### Accuracy
 don't need to care about rounding or truncating in 251. Just keep all digits
@@ -343,18 +396,18 @@ don't need to care about rounding or truncating in 251. Just keep all digits
 - convert decimal to binary
 - sync exponent to the larger degree
     - if have 2<sup>-2</sup>, 2<sup>-1</sup>, sync both to 2<sup>-1</sup>
-    - truncate if needed, NO rounding
+    - ~~truncate if needed, NO rounding~~
 - addition
 - change exponent back to scientific notation
-    - ROUND + truncate
+    - ~~ROUND + truncate~~
 - make sure exponent is within valid bias range
 
 ## Floating-Point Multiplication
 - add exponents
 - multiply significand (1.xxx)
-- shift decimal point "." by # of decimal digits
-- add sign
-- ROUND + truncate
+- shift decimal point "." by total number of decimal digits between the two inputs
+- add sign based on the two inputs
+- ~~ROUND + truncate~~
 
 # Lecture 12
 ## ROM
@@ -362,31 +415,45 @@ n input, m output
 
 ROM is like a lookup table, with 2^n rows of m-bit data
 
+FIGURE OUT HOW ITS DRAWN AFTER MIDTERM, THIS IS NOT ON MIDTERM!!!
+
 ## Register and Register Files
 Register: an array of flip-flop. We need 64 flip-flop to implement a 64 bit register. We use shared clock between all flip-flop so all bits of the register are updated at the same time. 
 
 Register file: a way of organizing registers
 
-<img src="img/lec12-1.png">
-
 ### Read/Write Logic for Register File
 READ: MUX of 5-bit select line (Read Register Numer), each Register_i is 64-bit wide, so output (Read Data i) is 64-bit
 
-WRITE: Register Data is 64-bit, Write is 1-bit, Register Numer start with 5-bit, and is decoded into 32 output of 1-bit output
+WRITE: Register Data is 64-bit, Write is 1-bit, Register Numer is 5-bit, and is decoded into 32 output of 1-bit output
 
+<img src="img/lec12-1.png">
+
+<img src="img/lec12-2.png">
 
 ## RAM - Random Access Memory
 ???
 
 ## SRAM - Static RAM
-Can implement SRAM using 6 transistors (ON MIDTERM)
+Can implement SRAM using only 6 transistors, much less than D-flip-flop and D-latch
+
+Where SRAM is used?
+- Build registers in modern processors (D-flip-flop and D-latch are actually not used in modern processors)
+
+**why SRAM?**
+- **fastest** compare to DRAM, D-flip-flop and D-latch
+- uses less transistors compare to D-flip-flop and D-latch
 
 ## DRAM - Dynamic RAM
-DRAM is made from capacitors and transistors
+DRAM is made from 1 capacitors and 1 transistors, so cheaper than SRAM, and smaller physical space
 
 - DRAM is cheaper than SRAM, but slower
-- Refresh controller must also allow read/write access
-- Possibility of getting more bits out at a time (e.g. page-mode RAM)
+- capacitor will lose its charge, require recharge unit, that's why it's slower.
+- ~~Refresh controller must also allow read/write access~~
+- ~~Possibility of getting more bits out at a time (e.g. page-mode RAM)~~
+
+**why DRAM?**
+- **cheaper** than SRAM, smaller physical size
 
 ---
 
