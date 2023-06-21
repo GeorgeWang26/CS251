@@ -274,7 +274,10 @@ From finite state machine, we can get a ***next state table***, that takes in in
 ## Data Representation
 decimal <--> binary <--> hex
 
-two's complement: flip bits, add 1
+- unsigned
+- sign and magnitude, have duplicate 0
+- two's complement: flip bits, add 1
+
 
 Overflow: a + b = c \
 a, b same sign, c different sign, then overflow happened. \
@@ -292,3 +295,102 @@ so in addition, first CarryIn = 0, but in subtraction, first CarryIn = 1
 ## ALU
 <img src="img/lec9-1.png">
 <img src="img/lec9-2.png">
+
+
+# Lecture 10
+## Unsigned Binary Multiplication
+In 251, all binary multiplications are **unsigned**
+
+Note: for n bit numbers, result may be 2n bits
+
+## Represent Real Numbers
+work just like decimal
+- 1.01<sub>2</sub> x 2<sup>4</sup> = 10100<sub>2</sub> = 20<sub>10</sub>
+- 1.01<sub>2</sub> = 1 x 2<sup>0</sup> + 0 x 2<sup>-1</sup> + 1 x 2<sup>-2</sup> = 1 + 1/4 = 5/4 <sub>10</sub>
+
+In scientific notation
+- 1.010 x 2<sup>3</sup> <sub>2</sub> (this is in binary)
+    - 1: sign
+    - 010: fraction (dot is not included)
+    - 3: exponent
+
+This is represented as
+- bit 31 (S): sign for entire fraction, 1 for neg, 0 for pos
+- bit 30 - 23 (E in unsigned binary): exponent, represented by adding 127 to E (biased notation, with bias = 127), then convert the result to an unsigned binary number. Pad 0 from left.
+- bit 22 - 0 (F): fraction part. Pad 0 from right
+
+Don't need to record the "1" before the "dot ." Since scientific numbers are always normalized, hence in the form (+/- 1.F x 2<sup>E</sup>)
+
+floating point value in decimal = (−1)<sup>S</sup> × (1 + fraction) × 2
+<sup>(exponent−bias)</sup>
+
+### Valid Bias Range
+after convertion, we have 8 bit unsigned number, from 0 - 255, but 0 & 255 are reserved, so valid range is 1 - 254, hence (1-127) - (254-127) == -126 - 127 before convertion for valid power
+
+### Decimal to Binary
+- 0.625<sub>10</sub> to 0.101<sub>2</sub>
+    - multiply decimal by 2 to get d
+    - take decimal before decimal point "." as binary digit
+    - repeat until value on right side of decimal point "." is 0, that is d = 1.0
+- 2.625<sub>10</sub> to binary
+    - 2.625<sub>10</sub> = (2 + 0.625)<sub>10</sub> = (10 + 0.101)<sub>2</sub> = 1.0101<sub>2</sub> x 2<sup>-1</sup>
+
+# Lecture 11
+### Accuracy
+don't need to care about rounding or truncating in 251. Just keep all digits
+
+## Floating-Point Addition
+- convert decimal to binary
+- sync exponent to the larger degree
+    - if have 2<sup>-2</sup>, 2<sup>-1</sup>, sync both to 2<sup>-1</sup>
+    - truncate if needed, NO rounding
+- addition
+- change exponent back to scientific notation
+    - ROUND + truncate
+- make sure exponent is within valid bias range
+
+## Floating-Point Multiplication
+- add exponents
+- multiply significand (1.xxx)
+- shift decimal point "." by # of decimal digits
+- add sign
+- ROUND + truncate
+
+# Lecture 12
+## ROM
+n input, m output
+
+ROM is like a lookup table, with 2^n rows of m-bit data
+
+## Register and Register Files
+Register: an array of flip-flop. We need 64 flip-flop to implement a 64 bit register. We use shared clock between all flip-flop so all bits of the register are updated at the same time. 
+
+Register file: a way of organizing registers
+
+<img src="img/lec12-1.png">
+
+### Read/Write Logic for Register File
+READ: MUX of 5-bit select line (Read Register Numer), each Register_i is 64-bit wide, so output (Read Data i) is 64-bit
+
+WRITE: Register Data is 64-bit, Write is 1-bit, Register Numer start with 5-bit, and is decoded into 32 output of 1-bit output
+
+
+## RAM - Random Access Memory
+???
+
+## SRAM - Static RAM
+Can implement SRAM using 6 transistors (ON MIDTERM)
+
+## DRAM - Dynamic RAM
+DRAM is made from capacitors and transistors
+
+- DRAM is cheaper than SRAM, but slower
+- Refresh controller must also allow read/write access
+- Possibility of getting more bits out at a time (e.g. page-mode RAM)
+
+---
+
+midterm coverage
+
+---
+
