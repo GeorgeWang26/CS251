@@ -227,6 +227,13 @@ For strong transmissions, ALWAYS connect pMOS to power (strong 1), nMOS to groun
 - NAND: 4 transistors
 - NOR: 4 transistors
 - AND: 6 transistors
+- OR: 6 transistors
+
+key take away
+- **2-n input NAND** uses **2n** transistors
+- **2-n input AND** uses **2n + 2** transistors (equivalent to 2-n input NAND with NOT in the end)
+- 2-n input NOR has same number of transistors as 2-n input NAND
+- 2-n input OR has same number of transistors as 2-n input AND
 
 Thus we ***prefer to implement circuit with NAND, since it requires less transistors***
 
@@ -364,6 +371,7 @@ In scientific notation
     - "-": sign
     - 010: fraction (dot is not included)
     - 3: exponent
+    - 1.010: significand
 
 This is represented as
 - bit 31 (S): sign for entire fraction, 1 for neg, 0 for pos
