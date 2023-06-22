@@ -386,6 +386,8 @@ floating point value in decimal = (−1)<sup>S</sup> × (1 + fraction) × 2
 ### Valid Bias Range
 after convertion, we have 8 bit unsigned number, in range [0, 255], but 0 & 255 are reserved, so valid range is [1, 254], hence [(1-127), (254-127)] == [-126, 127] is the valid range for exponents before converting to bias notation
 
+if exp after convert to bias is outside the range [1, 254], then overflow/underflow happened
+
 ### Decimal to Binary
 - 0.625<sub>10</sub> to 0.101<sub>2</sub>
     - multiply decimal by 2 to get d
