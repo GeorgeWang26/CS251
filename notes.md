@@ -430,7 +430,9 @@ Ex: when input is 00, wordline<sub>0</sub> becomes 1 and the two nMOS transistor
 <img src="img/lec12-1.png">
 
 ## Register and Register Files
-Register: an array of flip-flop. We need 64 flip-flop to implement a 64 bit register. We use shared clock between all flip-flop so all bits of the register are updated at the same time. 
+Register: an array of D-flip-flop. We need 64 D-flip-flop to implement a 64 bit register. We use shared clock between all D-flip-flop so all bits of the register are updated at the same time. 
+
+Note: PC is also a register, implemented using 64 D-flop-flops
 
 Register file: a way of organizing registers
 
@@ -445,6 +447,8 @@ WRITE: Register Data is 64-bit, Write is 1-bit, Register Numer is 5-bit, and is 
 
 ## RAM - Random Access Memory
 ### SRAM - Static RAM
+Static because remember data until powered off
+
 Can implement SRAM using only 6 transistors, much less than D-flip-flop and D-latch
 
 Where SRAM is used?
@@ -457,6 +461,8 @@ Where SRAM is used?
 <img src="img/lec12-4.png">
 
 ### DRAM - Dynamic RAM
+Dynamic because need to recharge to remember, otherwise capacitor will lose its charge, and the stored data will be forgot
+
 DRAM is made from 1 capacitors and 1 transistors, so cheaper than SRAM, and smaller physical space
 
 - DRAM is cheaper than SRAM, but slower
@@ -468,3 +474,102 @@ DRAM is made from 1 capacitors and 1 transistors, so cheaper than SRAM, and smal
 - **cheaper** than SRAM, smaller physical size
 
 <img src="img/lec12-5.png">
+
+# Lecture 13
+## Fetch-Execute Cycle
+- Fetch
+- Decode
+- Execute
+
+<img src="img/lec13-1.png">
+
+## Frist Implementation (One Cycle Per Instruction)
+- clock must be slowed to speed of slowest instruction
+
+### Fetch
+PC is implemented using D-flip-flop, so writting to PC during the clock cycle will not change the output Q<sub>E</sub> until next clock cycle
+
+<img src="img/lec13-2.png">
+
+### Datapath (ADD/SUB)
+- RegWrite = 1
+- ALU operation = 0010 for ADD
+- ALU operation = 0110 for SUB
+<img src="img/lec13-3.png">
+
+### Datapath (LDUR/STUR )
+- ALU operation = 0010 (a + b)
+- LDUR: MemWrite = 0, MemRead = 1, RegWrite = 1
+- STUR: MemWrite = 1, MemRead = 0, RegWrite = 0
+
+<img src="img/lec13-4.png">
+
+### Datapath (Combine R-format & D-format)
+- MUX with ALUSrc selects Reg File output OR Sign-extended constant
+- MUX with MemtoReg selects ALU output OR Memory Read output
+
+<img src="img/lec13-5.png">
+
+### Datapath (CBZ)
+- RegWrite = 0
+- ALU operation = 0011 (pass b)
+<img src="img/lec13-6.png">
+
+### Datapath (Combine R-format & D-format & CB-format)
+- MUX with PCSrc selects between PC+4 OR CBZ address
+
+<img src="img/lec13-7.png">
+
+### Datapath with Control
+The circuit below only work with ADD/SUB/LDUR/STUR/CBZ
+
+To support CBNZ, changes need to be made to control unit and how PCSrc is generated
+
+#### Opcode
+Opcode length based on format
+- R-format: 11 bits
+- I-format: 10 bits
+- D-format: 11 bits
+- B-format: 6 bits
+- CB-format: 8 bits
+
+<img src="img/lec13-8.png">
+
+<img src="img/lec13-9.png">
+
+<img src="img/lec13-10.png">
+
+# Lecture 14
+<img src="img/lec14-1.png">
+
+## ALU Control
+- Operation2 = 0
+- Operation2 = ALUOp1 · Opcode30
+- Operation1 = (not ALUOp1) + ALUOp1 · Opcode24
+- Operation0 = ALUOp0 + ALUOp1 · Opcode29
+
+<img src="img/lec14-2.png">
+
+## Control Unit
+<img src="img/lec14-3.png">
+
+### Opcode
+Opcode could be simplified, and we are only interested in bits 30, 28, 27, 26, 25, 22
+
+<img src="img/lec14-4.png">
+
+### Simplified Circuit
+- Input
+    - Opcode bits at index 30, 28, 27, 26, 25, 22
+- Output
+    - Reg2Loc, ALUSrc, MemtoReg, RegWrite, MemRead, MemWrite, Branch
+    - ALUOp1, ALUOp0
+
+<img src="img/lec14-5.png">
+<img src="img/lec14-6.png">
+
+## Operation Time for Datapath Component
+Add up all the time each component take (instruction memory, register file, ALU, data memory)
+
+If the instruction does not need the second input in ALU to come from register file, then time cost for control unit does not affect operation time. Otherwise, register file has to wait untill control unit is finished, before continues. Adders will happen in parallel, and won't affect operation time. 
+
