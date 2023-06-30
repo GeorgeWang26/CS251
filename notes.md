@@ -543,7 +543,7 @@ Opcode length based on format
 <img src="img/lec14-1.png">
 
 ## ALU Control
-- Operation2 = 0
+- Operation3 = 0
 - Operation2 = ALUOp1 · Opcode30
 - Operation1 = (not ALUOp1) + ALUOp1 · Opcode24
 - Operation0 = ALUOp0 + ALUOp1 · Opcode29
