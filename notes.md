@@ -425,7 +425,9 @@ n input, m output
 
 ROM is like a lookup table, with 2^n rows of m-bit data
 
-FIGURE OUT HOW ITS DRAWN AFTER MIDTERM, THIS IS NOT ON MIDTERM!!!
+Ex: when input is 00, wordline<sub>0</sub> becomes 1 and the two nMOS transistors now have Low resistance, so bitline<sub>2</sub> and bitline<sub>1</sub> are pulled to ground, thus D<sub>2</sub> = D<sub>1</sub> = 0 and D<sub>0</sub> = 1 remains unaffected. Other wordlines are decoded to 0, so all other nMOS transistors have High resistance, and won't affect behaviour of the bitline
+
+<img src="img/lec12-1.png">
 
 ## Register and Register Files
 Register: an array of flip-flop. We need 64 flip-flop to implement a 64 bit register. We use shared clock between all flip-flop so all bits of the register are updated at the same time. 
@@ -437,14 +439,12 @@ READ: MUX of 5-bit select line (Read Register Numer), each Register_i is 64-bit 
 
 WRITE: Register Data is 64-bit, Write is 1-bit, Register Numer is 5-bit, and is decoded into 32 output of 1-bit output
 
-<img src="img/lec12-1.png">
-
 <img src="img/lec12-2.png">
 
-## RAM - Random Access Memory
-???
+<img src="img/lec12-3.png">
 
-## SRAM - Static RAM
+## RAM - Random Access Memory
+### SRAM - Static RAM
 Can implement SRAM using only 6 transistors, much less than D-flip-flop and D-latch
 
 Where SRAM is used?
@@ -454,7 +454,9 @@ Where SRAM is used?
 - **fastest** compare to DRAM, D-flip-flop and D-latch
 - uses less transistors compare to D-flip-flop and D-latch
 
-## DRAM - Dynamic RAM
+<img src="img/lec12-4.png">
+
+### DRAM - Dynamic RAM
 DRAM is made from 1 capacitors and 1 transistors, so cheaper than SRAM, and smaller physical space
 
 - DRAM is cheaper than SRAM, but slower
@@ -465,9 +467,4 @@ DRAM is made from 1 capacitors and 1 transistors, so cheaper than SRAM, and smal
 **why DRAM?**
 - **cheaper** than SRAM, smaller physical size
 
----
-
-midterm coverage
-
----
-
+<img src="img/lec12-5.png">
