@@ -573,3 +573,77 @@ Add up all the time each component take (instruction memory, register file, ALU,
 
 If the instruction does not need the second input in ALU to come from register file, then time cost for control unit does not affect operation time. Otherwise, register file has to wait untill control unit is finished, before continues. Adders will happen in parallel, and won't affect operation time. 
 
+# Lecture 15
+## Pipelining
+Parallel execution of multiple instructions. Want to have steady throughput, so one new instruction launched per cycle
+
+<img src="img/lec15-1.png">
+
+Divide datapath into 5 stages
+- Instruction Fetch (IF): fetch instruction from memory
+- Instruction Decode (ID): decode instruction & read from registers
+- Execute (EX): ALU operations
+- Memory (MEM): access (read/write) data memory
+- Write Back (WB): write result back to register
+
+Note: each datapath will go through all stages, even if some stages don't have any impact (MEM in ADD)
+
+Write to registers happen in first half of clock cycle, read happen in the second half. So we can now read the new (just updated) register data. And not have read/write collision (try to read & write into same register the same time)
+
+### Notation
+
+<img src="img/lec15-2.png">
+
+- shading means a stage uses the hardware (ie: ADD doesn't access MEM)
+- dashed line: component only run in first (or second) half of the cycle (ID, WB)
+- left shaded: writing (WB)
+- right shaded: reading (IF, ID)
+
+## Structual Hazard
+Structural hazards usually require a major design change
+
+Problem: can't read from two locations on the same memory chip the same time
+
+<img src="img/lec15-3.png">
+
+Solution: two separate components, instruction memory + data memory
+
+## Data Hazard
+### Hazard 1
+Problem: writing to X1 happens **after** read of SUB
+
+<img src="img/lec15-4.png">
+
+Solution: ***forwarding*** – take value to be written to X1 before it is written to register file
+
+<img src="img/lec15-5.png">
+
+Note: ADD actually spend 1cc in MEM but nothing meaningful happened because MemRead/MemWrite flags are turned off by Control unit
+
+### Hazard 2
+Problem: Load-Use Data Hazard, forwarding from EX stage is not helpful. Need to forward from MEM stage
+
+<img src="img/lec15-6.png">
+
+Solution: SUB must stall for one stage. Use “bubbles” to show stalling.
+
+Can use hardware to detect this stall, or use software to reorder instructions (do some meaningful instructions instead of just stalling for nothing)
+
+## Control Hazard
+Problem: pipeline **does not know** the address of the next instruction in the **next clock cycle**, whether it should be PC + 4 or PC + 4 × immediate
+
+<img src="img/lec15-7.png">
+
+Solution: 
+- Stall
+    - Suppose the hardware can test the register, determine the branch target address and update the PC in the second stage ID (instruction decode)
+- Predict
+- Delay decision
+    - rearrange instructions to **hide** branch delay, like Data Hazard 2
+
+<img src="img/lec15-8.png">
+
+## Pipelined Version of Datapath
+Pipeline registers (in blue) hold all necessary intermediate values
+
+<img src="img/lec15-9.png">
