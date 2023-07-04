@@ -647,3 +647,46 @@ Solution:
 Pipeline registers (in blue) hold all necessary intermediate values
 
 <img src="img/lec15-9.png">
+
+# Lecture 16
+## Pipeline Registers + Control Signals
+<img src="img/lec16-2.png">
+
+Note that Reg2Loc is replaced with Instruction[28] in ID stage
+
+Control unit no longer generates Reg2Loc signal, instead, it's retrieved directly from Instruction[28]. This is done so that in ID stage, we don't need to wait till Control unit is finished before moving into register file (cuz we don't know what is register 2 yet, need to wait till Reg2Loc is generated)
+
+<img src="img/lec16-1.png">
+
+## Data Dependency
+<img src="img/lec16-3.png">
+
+Last four instructions use data written by first instruction. ADD and STUR are fine because they are retrieving X2 after X2 is updated in SUB. But ADD and ORR are still problematic as they are reading X2 before it is updated
+
+### NOP
+NOP is equivalent to `ADD X31, X31, X31`. And we could halt the datapath with NOP so AND would happen two cycles after SUB. This way, X2 will always be updated before it's retrieved
+
+```
+    ORIGINAL
+SUB X2,X1,X3
+AND X12,X2,X5
+ORR X13,X6,X2
+ADD X14,X2,X2
+STUR X15,[X2,#200]
+
+    NOP SOLUTION WITHOUT DATA HAZARDS
+SUB X2,X1,X3
+NOP                 // stall
+NOP                 // stall
+AND X12,X2,X5
+ORR X13,X6,X2
+ADD X14,X2,X2
+STUR X15,[X2,#200]
+```
+
+## Forwarding
+Always foward from most recent **pipeline registers**
+
+<img src="img/lec16-4.png">
+
+<img src="img/lec16-5.png">
