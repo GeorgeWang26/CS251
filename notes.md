@@ -49,18 +49,18 @@ register
 
 ### D-Format
 load/store "data" from/to RAM, which is multiple of 8, since data are stored as double-word, const can be pos and neg
-- `LDUR X1,[X2,#24]`: Load data from memory address X2+24 into register X1
+- `LDUR X1,[X2, #24]`: Load data from memory address X2+24 into register X1
     - X2: base register
     - constant: -256 to 255
     - sum is a byte address, need to be multiple of 8
-- `STUR X1,[X2,#32]`: Store data from X1 into memory at address X2+32
+- `STUR X1,[X2, #32]`: Store data from X1 into memory at address X2+32
 
 Convert `B[5] = B[4]` to ARM, assuming b[0] addr is stored at X1
 ``` arm
-LDUR X2,[X1,#32]    // 4x8=32, assume each element in array is stored using 8 bytes
+LDUR X2,[X1, #32]    // 4x8=32, assume each element in array is stored using 8 bytes
                     // Always take upper bound with multiple of 8 for element size
                     // ie: if each element is 10 bytes, it's stored in RAM with 16 bytes block, with 0 padding (left? right? idk)
-STUR X2,[X1,#40]
+STUR X2,[X1, #40]
 ```
 
 ### I-Format
@@ -70,7 +70,7 @@ constants are refered to as "immediate", can only be ***non-negative***, use `SU
 
 Convert `a = a + 7` to assembly, assume a is in X1
 ``` arm
-ADDI X1,X1,#7
+ADDI X1,X1, #7
 ```
 
 ### B-Format
@@ -81,14 +81,14 @@ branch, const can be pos and neg
 
 ### CB-Format
 conditional branch, const can be pos and neg
-- `CBZ X1,#8`
+- `CBZ X1, #8`
 ``` c
 if X1 == 0
     PC = PC + 4 * 8
 else
     PC = PC + 4  // go to next instruction, which is 4 bytes away
 ```
-- `CBNZ X1,#8`
+- `CBNZ X1, #8`
 ``` c
 if X1 != 0
     PC = PC + 4 * 8
@@ -104,11 +104,11 @@ while (i > 0)
 i = -5;
 ```
 ``` arm
-ADDI X1,XZR,#10
-CBZ X1,#3       // direct translation, not "fully direct" since branch should be for all X1 <= 0 
-SUBI X1,X1,#1
+ADDI X1,XZR, #10
+CBZ X1, #3       // direct translation, not "fully direct" since branch should be for all X1 <= 0 
+SUBI X1,X1, #1
 CBNZ X1, #-1
-SUBI X1,XZR,#5
+SUBI X1,XZR, #5
 ```
 
 
@@ -672,7 +672,7 @@ SUB X2,X1,X3
 AND X12,X2,X5
 ORR X13,X6,X2
 ADD X14,X2,X2
-STUR X15,[X2,#200]
+STUR X15,[X2, #200]
 
     NOP SOLUTION WITHOUT DATA HAZARDS
 SUB X2,X1,X3
@@ -681,7 +681,7 @@ NOP                 // stall
 AND X12,X2,X5
 ORR X13,X6,X2
 ADD X14,X2,X2
-STUR X15,[X2,#200]
+STUR X15,[X2, #200]
 ```
 
 ## Forwarding
@@ -764,11 +764,11 @@ When branch is detected, `IF.Flush` is set to 1, so IF/ID consists of all 0s, an
 <img src="img/lec17-4.png">
 
 ### Branch Load Hazard
-Need to **stall for 2 CC**, then move from MEM/WB.RegisterRd to **second output from register file**
+Need to **stall for 2 CC**, no forwarding needed since register write in first half of cc, and read in second half of cc
 
 ```
-LDUR X1, [X1,#200]
-CBZ X1,#100
+LDUR X1, [X1, #200]
+CBZ X1, #100
 ```
 
 ## Assume Branch Not Taken
@@ -785,6 +785,9 @@ Start with an assumption on whether branch is taken. Everytime prediction is fal
 ## Two-Bit Branch Prediction
 Also need an initial start state, then follow the FSM (finite state machine). Note this FSM may be different in assignment/exam questions
 
+- Predict taken: predict that branch will be taken, so PC+=offset
+- Predict not taken: predict that branch is not taken, so PC+=4
+
 <img src="img/lec17-6.png">
 
 ## Execution Time
@@ -794,9 +797,9 @@ Also need an initial start state, then follow the FSM (finite state machine). No
 ADDI X4, X31, #6    // Initialize counter to 6
 
                     // Instructions in the loop
-LDUR X1, [X2,#20]   // 1. Branch to here
+LDUR X1, [X2, #20]   // 1. Branch to here
 ADDI X1, X1, #4     // 2. Load-use stall
-STUR X1, [X2,#20]   // 3.
+STUR X1, [X2, #20]   // 3.
 ADDI X2, X2, #8     // 4.
 SUBI X4, X4, #1     // 5. Decrement counter
 CBNZ X4, #-5        // 6. Branch data stall, wait for X4
@@ -811,6 +814,7 @@ Total Clock Cycle = 4cc (startup) + 1 (initialize counter) + 6 (loop) * [ 1 (loa
 ### Who Stalls?
 - Load-use hazards: stall 1cc (LDUR followed by non-branch)
 - Branch-load hazard: stall 2cc (LDUR followed by branch)
+- Branch-data hazard: stall 1cc (branch register followed right after any change to that branch register)
 - Branch mispredicted: stall 1cc (flush & update PC)
 
 ## Average CPI
