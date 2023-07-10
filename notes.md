@@ -685,8 +685,133 @@ STUR X15,[X2,#200]
 ```
 
 ## Forwarding
-Always foward from most recent **pipeline registers**
-
+### Notation
+- Rn1 is first input to ALU
+- Rm2 is second input to ALU
 <img src="img/lec16-4.png">
 
+```
+1   SUB  X2, X1,X3 ; WB stage
+2   AND  X12,X2,X5 ; MEM stage
+3   ORR  X13,X12,X2 ; EX stage
+```
+- Between 1 and 3, there is MEM data hazard. Since result of SUB is now stored in MEM/WB pipeline register
+- Between 2 and 3, there is EX data hazard. Since result of AND stored in EX/MEM pipeline register
+
+### EX Data Hazard
+1 means AND is right after SUB
+
+EX Hazard **1a**, since X2 is Register**Rn1**
+```
+SUB X2, X1, X3
+AND X12, X2, X5
+```
+
+EX Hazard **1b**, since X2 is Register**Rm2**
+```
+SUB X2, X1, X3
+AND X12, X5, X2
+```
+
+### MEM Data Hazard
+2 means there is an extra instruction between SUB and AND
+
+MEM Hazard **2a**, since X2 is Register**Rn1**
+```
+SUB X2, X1, X3
+AND X11, X12, X5
+OR X13, X2, X1
+```
+
+MEM Hazard **2b**, since X2 is Register**Rm2**
+```
+SUB X2, X1, X3
+AND X11, X12, X5
+OR X13, X1, X2
+```
+
+### Most Recent Only!!!
+Always foward from most recent **pipeline registers**
+
 <img src="img/lec16-5.png">
+
+<img src="img/lec16-6.png">
+
+### Forwarding Unit Diagram
+<img src="img/lec16-7.png">
+
+**Note:** MUX control is written in order "00, 10, 01" (0, 2, 1) instead of the regular order "00, 01, 10" (0, 1, 2)
+
+# Lecture 17
+## Load-Use Hazard
+ONLY happen when `LDUR Rd ...` (ID/EX.MemRead, is 1 only for LDUR) is followed immediately by an instruction that uses this `Rd` as `Rn` or `Rm` (ID/EX.RegisterRd == IF/ID.RegisterRn1 or ID/EX.RegisterRd == IF/ID.RegisterRm2). Stall in this case
+
+When hazard detection units detects a load-use hazard, the stall signal will be 1, so in the mux, all control signals will be selected to 0. Hazard detection unit will also freeze PC & IM/ID pipeline register by setting PCWrite and IF/IDWrite to 0
+
+<img src="img/lec17-1.png">
+<img src="img/lec17-2.png">
+
+## Control Hazard
+Move branch detection for CBZ to ID (decode stage), use a 64-bit OR gate to detect if register data is all 0. Sign extend, shift left by 2, add offset to PC are all moved to decode stage. This way, branch can be detected at an earlier stage. 
+
+When branch is detected, `IF.Flush` is set to 1, so IF/ID consists of all 0s, and `=0` is set to 1, so PC will be updated to the new address
+
+<img src="img/lec17-3.png">
+
+### Branch Data Hazard
+**Stall 1 CC** then move from EX/MEM.RegisterRd to **second output from register file**
+
+<img src="img/lec17-4.png">
+
+### Branch Load Hazard
+Need to **stall for 2 CC**, then move from MEM/WB.RegisterRd to **second output from register file**
+
+```
+LDUR X1, [X1,#200]
+CBZ X1,#100
+```
+
+## Assume Branch Not Taken
+Always load PC+4, then if branch is needed, flush, update PC = PC+offset, then load again
+
+## Assume Branch Not Taken
+Always load PC+offset, then if branch is not needed, flush, update PC = PC+4, then load again
+
+## Dynamic Branch Prediction
+Start with an assumption on whether branch is taken. Everytime prediction is false, change Branch Taken (0 to 1, 1 to 0)
+
+<img src="img/lec17-5.png">
+
+## Two-Bit Branch Prediction
+Also need an initial start state, then follow the FSM (finite state machine). Note this FSM may be different in assignment/exam questions
+
+<img src="img/lec17-6.png">
+
+## Execution Time
+**Always have 4 CC for pipeline startup time**
+
+```
+ADDI X4, X31, #6    // Initialize counter to 6
+
+                    // Instructions in the loop
+LDUR X1, [X2,#20]   // 1. Branch to here
+ADDI X1, X1, #4     // 2. Load-use stall
+STUR X1, [X2,#20]   // 3.
+ADDI X2, X2, #8     // 4.
+SUBI X4, X4, #1     // 5. Decrement counter
+CBNZ X4, #-5        // 6. Branch data stall, wait for X4
+
+ADD X1,X2,X3
+```
+
+Assume branch not taken (so CBNZ always load PC+4, then flush, then load PC+offset)
+
+Total Clock Cycle = 4cc (startup) + 1 (initialize counter) + 6 (loop) * [ 1 (load-use) + 1 (branch data stall) + 6 (instructions) + 1 (flush or execute instruction after last loop) ]
+
+### Who Stalls?
+- Load-use hazards: stall 1cc (LDUR followed by non-branch)
+- Branch-load hazard: stall 2cc (LDUR followed by branch)
+- Branch mispredicted: stall 1cc (flush & update PC)
+
+## Average CPI
+<img src="img/lec17-7.png">
